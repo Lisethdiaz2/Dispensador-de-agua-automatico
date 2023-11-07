@@ -1,0 +1,71 @@
+// Defino los pines de los sensores
+#define PIN_TRIG 7
+#define PIN_ECHO 8
+#define PIN_TRIG_SUP 3
+#define PIN_ECHO_SUP 2
+
+// Defino los pines de la bomba de agua
+#define PIN_BOMBA 5
+
+
+
+// Inicializo los sensores
+void setup() {
+  pinMode(PIN_TRIG, OUTPUT);
+  pinMode(PIN_ECHO, INPUT);
+  pinMode(PIN_TRIG_SUP, OUTPUT);
+  pinMode(PIN_ECHO_SUP, INPUT);
+
+  // Inicializa el monitor serial
+  Serial.begin(9600);
+
+  pinMode(PIN_BOMBA, OUTPUT);
+
+
+}
+
+// Inicio el flujo de agua
+void loop() {
+  // Lanzamos un pequeño pulso para activar el sensor
+  digitalWrite(PIN_TRIG, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(PIN_TRIG, LOW);
+
+  // medimos el pulso de respuesta
+  long t = (pulseIn(PIN_ECHO, HIGH) / 2);
+
+  // ahora calcularemos la distancia en cm
+  // sabiendo que el espacio es igual a la velocidad por el tiempo
+  // y que la velocidad del sonido es de 343m/s y que el tiempo lo
+  // tenemos en millonesimas de segundo
+  float dist = float(t * 0.0343);
+
+  // Verifica si el sensor superior detecta que el vaso está lleno
+  digitalWrite(PIN_TRIG_SUP, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(PIN_TRIG_SUP, LOW);
+  t = (pulseIn(PIN_ECHO_SUP, HIGH) / 2);
+  float distV = float(t * 0.0343);
+
+  // Verifica si el sensor lateral está dentro del rango de distancia permitido
+  if (dist >= 4 && dist <= 10) {
+    digitalWrite(PIN_BOMBA, HIGH);
+  } else {
+    digitalWrite(PIN_BOMBA, LOW);
+  }
+
+  // Verifica si el sensor superior detecta que el vaso está lleno
+  if (distV < 9) {
+    digitalWrite(PIN_BOMBA, LOW);
+  }
+
+  // Imprime la distancia en el puerto serie
+  Serial.print("La distancia es: ");
+  Serial.println(dist);
+
+  // Imprime la distancia del sensor superior en el puerto serie
+  Serial.print("La distancia superior es: ");
+  Serial.println(distV);
+
+  delay(200);
+}
